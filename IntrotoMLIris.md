@@ -1,358 +1,703 @@
 
-### Welcome to Anidata!
+# <span style="color: #59c1cd">Welcome to Anidata!</span> <img style="float: right; height: 150px; margin: 25px" src="https://archive.ics.uci.edu/ml/assets/MLimages/Large53.jpg">
+This introduction to machine learning is for complete beginners. 
 
-This introduction to Machine Learning is for complete beginners. In this tutorial, you will use machine learning techniques to classify Iris plants into 3 species.
+In this tutorial, you will use machine learning techniques to classify Iris plants into 3 species.  To give yourself context, you could imagine that you are the lead researcher on a project to study Irises.  Your assistants will make measurements of various characteristics of the plant, and you want to develop a model that will identify the species of each set of collected measurements.  To do this, you will use 150 pieces of pre-measured data to train your model.  Then, you will use your model to classify any new data that comes in.
 
+Let's get started!
+
+### <span style="color: #6fb800">Step 0: Import libraries</span>
+When working with data, we will be building upon the work of others.  Instead of writing all our own code from scratch, we will be re-using code that others have written.  This code is [open-sourced](https://en.wikipedia.org/wiki/Open-source_software) and stored in coherent groups called libraries. This tutorial will use some common data-analysis libraries: 
+- [pandas](http://pandas.pydata.org/) - contains data analysis tools and a convenient data structure
+- [matplotlib](https://matplotlib.org/index.html) - tools for plotting data, especially using the sub-library [pyplot](https://matplotlib.org/api/pyplot_api.html) 
 
 
 ```python
-# To begin, we will need some common libraries.
+# These libraries should already be downloaded into your environment.  We now need to load them into python.
+import pandas
+import matplotlib.pyplot as plt # the last part sets a shortcut instead of writing out the full library name each time
+```
 
-import numpy # linear algebra
-import pandas # data processing, CSV file I/O (e.g. pd.read_csv)
-import seaborn
-import matplotlib.pyplot
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
+### <span style="color: #6fb800">Step 1: Get the data</span>
+To begin, we will need to import our data into this Jupyter notebook. This tutorial will use the [Iris](https://archive.ics.uci.edu/ml/datasets/iris) dataset from UCI's Machine Learning Repository.  The Iris dataset is [well-known](https://en.wikipedia.org/wiki/Iris_flower_data_set) and was used in a classic 1936 paper by R.A. Fischer. It is often used to get started with machine learning. 
 
-from subprocess import check_output
-print(check_output(["ls", "../input"]).decode("utf8"))
 
-# Any results you write to the current directory are saved as output.
+```python
+# Read the file directly from the website
+iris = pandas.read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data", header=None) #load the dataset
+```
+
+### <span style="color: #6fb800">Step 2: Get to know the data</span><img style="float: right; height: 150px; margin: 25px" src="https://upload.wikimedia.org/wikipedia/commons/7/78/Petal-sepal.jpg">
+The [UCI repository](https://archive.ics.uci.edu/ml/datasets/iris) gives information on what is included in the dataset.  In this case, there are 5 attribues that are measured:
+
+- Sepal length in centimeters
+- Sepal width in centimeters
+- Petal length in centimeters
+- Petal width in centimeters
+- Species (one of [Iris Setosa](https://en.wikipedia.org/wiki/Iris_setosa), [Iris Versicolour](https://en.wikipedia.org/wiki/Iris_versicolor), [Iris Virginica](https://en.wikipedia.org/wiki/Iris_virginica)).
+
+To get a feel for this dataset, we will first rename the columns according to the information supplied by UCI.  Then, we will look at some of its characteristics.
+
+
+```python
+# Rename the columns
+iris.columns = ['SepalLengthCm','SepalWidthCm','PetalLengthCm','PetalWidthCm','Species']
 ```
 
 
 ```python
-iris = pandas.read_csv("../input/Iris.csv") #load the dataset
+# Show the first 5 rows from the dataset
+iris.head(5) 
 ```
 
 
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>SepalLengthCm</th>
+      <th>SepalWidthCm</th>
+      <th>PetalLengthCm</th>
+      <th>PetalWidthCm</th>
+      <th>Species</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>5.1</td>
+      <td>3.5</td>
+      <td>1.4</td>
+      <td>0.2</td>
+      <td>Iris-setosa</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>4.9</td>
+      <td>3.0</td>
+      <td>1.4</td>
+      <td>0.2</td>
+      <td>Iris-setosa</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>4.7</td>
+      <td>3.2</td>
+      <td>1.3</td>
+      <td>0.2</td>
+      <td>Iris-setosa</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4.6</td>
+      <td>3.1</td>
+      <td>1.5</td>
+      <td>0.2</td>
+      <td>Iris-setosa</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5.0</td>
+      <td>3.6</td>
+      <td>1.4</td>
+      <td>0.2</td>
+      <td>Iris-setosa</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
 ```python
-iris.head(2) #show the first 2 rows from the dataset
+# Show the last 5 rows from the dataset
+iris.tail(5)
 ```
 
 
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>SepalLengthCm</th>
+      <th>SepalWidthCm</th>
+      <th>PetalLengthCm</th>
+      <th>PetalWidthCm</th>
+      <th>Species</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>145</th>
+      <td>6.7</td>
+      <td>3.0</td>
+      <td>5.2</td>
+      <td>2.3</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>146</th>
+      <td>6.3</td>
+      <td>2.5</td>
+      <td>5.0</td>
+      <td>1.9</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>147</th>
+      <td>6.5</td>
+      <td>3.0</td>
+      <td>5.2</td>
+      <td>2.0</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>148</th>
+      <td>6.2</td>
+      <td>3.4</td>
+      <td>5.4</td>
+      <td>2.3</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>149</th>
+      <td>5.9</td>
+      <td>3.0</td>
+      <td>5.1</td>
+      <td>1.8</td>
+      <td>Iris-virginica</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
 ```python
-iris.info()  #checking if there is any inconsistency in the dataset
-#as we see there are no null values in the dataset, so the data can be processed
+# Get the size of our dataset
+iris.shape
 ```
 
-#### Removing the unneeded column
+
+
+
+    (150, 5)
+
+
 
 
 ```python
-iris.drop('Id',axis=1,inplace=True) #dropping the Id column as it is unecessary, axis=1 specifies that it should be column wise, inplace =1 means the changes should be reflected into the dataframe
+# Get some overall info about our dataset and what type of data it contains.
+iris.info()  
 ```
 
-## Some Exploratory Data Analysis With Iris
+    <class 'pandas.core.frame.DataFrame'>
+    RangeIndex: 150 entries, 0 to 149
+    Data columns (total 5 columns):
+    SepalLengthCm    150 non-null float64
+    SepalWidthCm     150 non-null float64
+    PetalLengthCm    150 non-null float64
+    PetalWidthCm     150 non-null float64
+    Species          150 non-null object
+    dtypes: float64(4), object(1)
+    memory usage: 5.9+ KB
+
+
+### <span style="color: #6fb800">Step 3: Exploratory data analysis by plotting</span>
+Although this step is not strictly necessary, plotting your data in various ways can be crucial to gaining an understanding of each characteristic of your data.  We will first take a look at how sepal width and length are related for each species in our training data.
 
 
 ```python
-fig = iris[iris.Species=='Iris-setosa'].plot(kind='scatter',x='SepalLengthCm',y='SepalWidthCm',color='orange', label='Setosa')
+fig = iris[iris.Species=='Iris-setosa'].plot(kind='scatter',x='SepalLengthCm',y='SepalWidthCm',color='orange', label='setosa')
 iris[iris.Species=='Iris-versicolor'].plot(kind='scatter',x='SepalLengthCm',y='SepalWidthCm',color='blue', label='versicolor',ax=fig)
 iris[iris.Species=='Iris-virginica'].plot(kind='scatter',x='SepalLengthCm',y='SepalWidthCm',color='green', label='virginica', ax=fig)
 fig.set_xlabel("Sepal Length")
 fig.set_ylabel("Sepal Width")
-fig.set_title("Sepal Length VS Width")
-fig=plt.gcf()
-fig.set_size_inches(10,6)
-plt.show()
-```
-
-The above graph shows relationship between the sepal length and width. Now we will check relationship between the petal length and width.
-
-
-```python
-fig = iris[iris.Species=='Iris-setosa'].plot.scatter(x='PetalLengthCm',y='PetalWidthCm',color='orange', label='Setosa')
-iris[iris.Species=='Iris-versicolor'].plot.scatter(x='PetalLengthCm',y='PetalWidthCm',color='blue', label='versicolor',ax=fig)
-iris[iris.Species=='Iris-virginica'].plot.scatter(x='PetalLengthCm',y='PetalWidthCm',color='green', label='virginica', ax=fig)
-fig.set_xlabel("Petal Length")
-fig.set_ylabel("Petal Width")
-fig.set_title(" Petal Length VS Width")
-fig=plt.gcf()
-fig.set_size_inches(10,6)
-plt.show()
-```
-
-As we can see that the Petal Features are giving a better cluster division compared to the Sepal features. This is an indication that the Petals can help in better and accurate Predictions over the Sepal. We will check that later.
-
-### Now let us see how are the length and width are distributed
-
-
-```python
-iris.hist(edgecolor='black', linewidth=1.2)
+fig.set_title("Sepal Length vs. Sepal Width")
 fig=plt.gcf()
 fig.set_size_inches(12,6)
 plt.show()
 ```
 
-### Now let us see how the length and width vary according to the species
+
+![png](output_12_0.png)
+
+
+The above graph shows relationship between the sepal length and width.  Already, you can start to see patterns in the data.  As the above plot shows, the species Iris setosa tends to have low sepal length and high sepal width. Now we will check relationship between the petal length and width.
 
 
 ```python
-plt.figure(figsize=(15,10))
-plt.subplot(2,2,1)
-sns.violinplot(x='Species',y='PetalLengthCm',data=iris)
-plt.subplot(2,2,2)
-sns.violinplot(x='Species',y='PetalWidthCm',data=iris)
-plt.subplot(2,2,3)
-sns.violinplot(x='Species',y='SepalLengthCm',data=iris)
-plt.subplot(2,2,4)
-sns.violinplot(x='Species',y='SepalWidthCm',data=iris)
-```
-
-The violinplot shows density of the length and width in the species. The thinner part denotes that there is less density whereas the fatter part conveys higher density
-
-### Now the given problem is a classification problem.. Thus we will be using the classification algorithms to build a model.
-**Classification**: samples belong to two or more classes and we want to learn from already labeled data how to predict the class of unlabeled data
-
-**Regression**: if the desired output consists of one or more continuous variables, then the task is called regression. An example of a regression problem would be the prediction of the length of a salmon as a function of its age and weight.
-
-Before we start, we need to clear some ML notations.
-
-**attributes**-->An attribute is a property of an instance that may be used to determine its classification. In the following dataset, the attributes are the petal and sepal length and width. It is also known as **Features**.
-
-**Target variable**, in the machine learning context is the variable that is or should be the output. Here the target variables are the 3 flower species.
-
-
-```python
-# importing alll the necessary packages to use the various classification algorithms
-from sklearn.linear_model import LogisticRegression  # for Logistic Regression algorithm
-from sklearn.cross_validation import train_test_split #to split the dataset for training and testing
-from sklearn.neighbors import KNeighborsClassifier  # for K nearest neighbours
-from sklearn import svm  #for Support Vector Machine (SVM) Algorithm
-from sklearn import metrics #for checking the model accuracy
-from sklearn.tree import DecisionTreeClassifier #for using Decision Tree Algoithm
-```
-
-
-```python
-iris.shape #get the shape of the dataset
-```
-
-Now, when we train any algorithm, the number of features and their correlation plays an important role. If there are features and many of the features are highly correlated, then training an algorithm with all the featues will reduce the accuracy. Thus features selection should be done carefully. This dataset has less featues but still we will see the correlation.
-
-
-```python
-plt.figure(figsize=(7,4)) 
-sns.heatmap(iris.corr(),annot=True,cmap='cubehelix_r') #draws  heatmap with input as the correlation matrix calculted by(iris.corr())
+fig = iris[iris.Species=='Iris-setosa'].plot.scatter(x='PetalLengthCm',y='PetalWidthCm',color='orange', label='setosa')
+iris[iris.Species=='Iris-versicolor'].plot.scatter(x='PetalLengthCm',y='PetalWidthCm',color='blue', label='versicolor',ax=fig)
+iris[iris.Species=='Iris-virginica'].plot.scatter(x='PetalLengthCm',y='PetalWidthCm',color='green', label='virginica', ax=fig)
+fig.set_xlabel("Petal Length")
+fig.set_ylabel("Petal Width")
+fig.set_title(" Petal Length vs. Petal Width")
+fig=plt.gcf()
+fig.set_size_inches(12,6)
 plt.show()
 ```
 
-**Observation--->**
 
-The Sepal Width and Length are not correlated
-The Petal Width and Length are highly correlated
+![png](output_14_0.png)
 
-We will use all the features for training the algorithm and check the accuracy.
 
-Then we will use 1 Petal Feature and 1 Sepal Feature to check the accuracy of the algorithm as we are using only 2 features that are not correlated. Thus we can have a variance in the dataset which may help in better accuracy. We will check it later.
+Again, we can see patterns in the data.  It seems that petal features do much better than sepal features in clustering the data. This knowledge will be useful when building our model.
 
-### Steps To Be followed When Applying an Algorithm
-
- 1. Split the dataset into training and testing dataset. The testing dataset is generally smaller than training one as it will help in training the model better.
- 2. Select any algorithm based on the problem (classification or regression) whatever you feel may be good.
- 3. Then pass the training dataset to the algorithm to train it. We use the **.fit()** method
- 4. Then pass the testing data to the trained algorithm to predict the outcome. We use the **.predict()** method.
- 5. We then check the accuracy by **passing the predicted outcome and the actual output** to the model.
-
-### Splitting The Data into Training And Testing Dataset
+### <span style="color: #6fb800">Step 4: Build our model</span>
+The problem we are given is a classification problem which will be ultimately used to classify new data.  To build our model, we will use our training set of 150 measurements.  Our model will be built out of the various attributes (sepal length, sepal width, petal length, and petal width).  These will be the inputs to our model.  Our model will then output the species.
 
 
 ```python
-train, test = train_test_split(iris, test_size = 0.3)# in this our main data is split into train and test
-# the attribute test_size=0.3 splits the data into 70% and 30% ratio. train=70% and test=30%
-print(train.shape)
-print(test.shape)
+inputs = iris[['SepalLengthCm','SepalWidthCm','PetalLengthCm','PetalWidthCm']]
+outputs = iris['Species']
 ```
+
+To build our model we will be using an algorithm called [k-nearest neighbors](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm).  It's one of the simplest machine learning algorithms but will be sufficient for this tutorial. As mentioned previously, we will not be coding this from scratch but instead will use the powerful [scikit-learn](http://scikit-learn.org/stable/) library that has many valuable machine learning tools.  We first need to import this library.  
 
 
 ```python
-train_X = train[['SepalLengthCm','SepalWidthCm','PetalLengthCm','PetalWidthCm']]# taking the training data features
-train_y=train.Species# output of our training data
-test_X= test[['SepalLengthCm','SepalWidthCm','PetalLengthCm','PetalWidthCm']] # taking test data features
-test_y =test.Species   #output value of test data
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import metrics #for checking the model accuracy
 ```
 
-Lets check the Train and Test Dataset
+As the name suggests, the k-nearest neighbors (kNN) algorithm works by looking at other points that are 'near by' to determine which species to assign.  (To see how it works, check out this [video](https://www.youtube.com/watch?v=UqYde-LULfs).)  For our first model, we are going to use k = 3 to look at the 3 nearest neighbors.
 
 
 ```python
-train_X.head(2)
+model = KNeighborsClassifier(n_neighbors=3) # store our model type
+model.fit(inputs,outputs) # use our iris data to build our model
+prediction = model.predict(inputs) # check our model's accuracy on our own iris data set
+print('The accuracy of the KNN is', metrics.accuracy_score(prediction,outputs))
 ```
+
+    The accuracy of the KNN is 0.96
+
+
+As you can see, the model was able to predict our iris dataset's species with 96% accuracy.  It is not good practice to judge a model's viability based solely on training data, but given the introductory nature of this tutorial, it will be good enough for our purposes.  Let's take a look at which pieces of data were not predicted accurately.
 
 
 ```python
-test_X.head(2)
+iris2 = pandas.concat([iris,pandas.DataFrame(prediction,columns=["PredictedSpecies"])],axis=1)
+iris2[prediction != outputs]
 ```
+
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>SepalLengthCm</th>
+      <th>SepalWidthCm</th>
+      <th>PetalLengthCm</th>
+      <th>PetalWidthCm</th>
+      <th>Species</th>
+      <th>PredictedSpecies</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>70</th>
+      <td>5.9</td>
+      <td>3.2</td>
+      <td>4.8</td>
+      <td>1.8</td>
+      <td>Iris-versicolor</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>72</th>
+      <td>6.3</td>
+      <td>2.5</td>
+      <td>4.9</td>
+      <td>1.5</td>
+      <td>Iris-versicolor</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>83</th>
+      <td>6.0</td>
+      <td>2.7</td>
+      <td>5.1</td>
+      <td>1.6</td>
+      <td>Iris-versicolor</td>
+      <td>Iris-virginica</td>
+    </tr>
+    <tr>
+      <th>106</th>
+      <td>4.9</td>
+      <td>2.5</td>
+      <td>4.5</td>
+      <td>1.7</td>
+      <td>Iris-virginica</td>
+      <td>Iris-versicolor</td>
+    </tr>
+    <tr>
+      <th>119</th>
+      <td>6.0</td>
+      <td>2.2</td>
+      <td>5.0</td>
+      <td>1.5</td>
+      <td>Iris-virginica</td>
+      <td>Iris-versicolor</td>
+    </tr>
+    <tr>
+      <th>133</th>
+      <td>6.3</td>
+      <td>2.8</td>
+      <td>5.1</td>
+      <td>1.5</td>
+      <td>Iris-virginica</td>
+      <td>Iris-versicolor</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+These 6 pieces of data have their species picked incorrectly.  Let's see if we can improve our model's accuracy.  Our k-nearest neighbors algorithm has a parameter that we can vary, k.  By changing k, we can often improve our model's ability to accurately predict the species of our training data.  We will apply the same algorithm with k = 5, 7, and 10.
 
 
 ```python
-train_y.head()  ##output of the training data
+model = KNeighborsClassifier(n_neighbors=5) # store our model type
+model.fit(inputs,outputs) # use our iris data to build our model
+prediction = model.predict(inputs) # check our model's accuracy on our own iris data set
+print('The accuracy of the KNN is', metrics.accuracy_score(prediction,outputs))
 ```
 
-### Support Vector Machine (SVM)
+    The accuracy of the KNN is 0.966666666667
+
 
 
 ```python
-model = svm.SVC() #select the algorithm
-model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
-prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
-print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
-#we pass the predicted output by the model and the actual output
+model = KNeighborsClassifier(n_neighbors=7) # store our model type
+model.fit(inputs,outputs) # use our iris data to build our model
+prediction = model.predict(inputs) # check our model's accuracy on our own iris data set
+print('The accuracy of the KNN is', metrics.accuracy_score(prediction,outputs))
 ```
 
-SVM is giving very good accuracy . We will continue to check the accuracy for different models.
+    The accuracy of the KNN is 0.973333333333
 
-Now we will follow the same steps as above for training various machine learning algorithms.
-
-### Logistic Regression
 
 
 ```python
-model = LogisticRegression()
-model.fit(train_X,train_y)
-prediction=model.predict(test_X)
-print('The accuracy of the Logistic Regression is',metrics.accuracy_score(prediction,test_y))
+model = KNeighborsClassifier(n_neighbors=10) # store our model type
+model.fit(inputs,outputs) # use our iris data to build our model
+prediction = model.predict(inputs) # check our model's accuracy on our own iris data set
+print('The accuracy of the KNN is', metrics.accuracy_score(prediction,outputs))
 ```
 
-### Decision Tree
+    The accuracy of the KNN is 0.98
+
+
+It seems like increasing k was a good decision, but be careful!  Our goal is to predict new data - not to accurately predict our training data.  As we increase k, we are increasing our bias.  To understand more, check out [this excellent article](http://scott.fortmann-roe.com/docs/BiasVariance.html).
+
+### <span style="color: #6fb800">Step 5: Use our model to make predictions</span>
+
+Some new data has been collected!  
 
 
 ```python
-model=DecisionTreeClassifier()
-model.fit(train_X,train_y)
-prediction=model.predict(test_X)
-print('The accuracy of the Decision Tree is',metrics.accuracy_score(prediction,test_y))
+new = pandas.read_csv("https://raw.githubusercontent.com/gwpjp/Teaching/master/new_data.csv")
+new.columns = ['SepalLengthCm','SepalWidthCm','PetalLengthCm','PetalWidthCm']
+new
 ```
 
-### K-Nearest Neighbours
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>SepalLengthCm</th>
+      <th>SepalWidthCm</th>
+      <th>PetalLengthCm</th>
+      <th>PetalWidthCm</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>6.5</td>
+      <td>2.4</td>
+      <td>5.6</td>
+      <td>1.8</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>3.9</td>
+      <td>2.3</td>
+      <td>3.8</td>
+      <td>1.7</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>5.6</td>
+      <td>1.4</td>
+      <td>3.6</td>
+      <td>1.3</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>6.9</td>
+      <td>3.1</td>
+      <td>4.1</td>
+      <td>1.4</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>4.3</td>
+      <td>4.3</td>
+      <td>1.7</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>6.5</td>
+      <td>3.0</td>
+      <td>4.3</td>
+      <td>1.9</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>7.4</td>
+      <td>3.5</td>
+      <td>4.4</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>6.5</td>
+      <td>3.5</td>
+      <td>5.7</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>7.4</td>
+      <td>3.1</td>
+      <td>5.3</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>5.7</td>
+      <td>2.3</td>
+      <td>5.4</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>7.1</td>
+      <td>2.7</td>
+      <td>3.9</td>
+      <td>1.3</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>5.1</td>
+      <td>3.2</td>
+      <td>4.7</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>4.9</td>
+      <td>3.8</td>
+      <td>1.0</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>6.7</td>
+      <td>2.7</td>
+      <td>5.5</td>
+      <td>1.8</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>6.7</td>
+      <td>2.9</td>
+      <td>5.7</td>
+      <td>1.8</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>7.1</td>
+      <td>3.4</td>
+      <td>5.1</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>5.2</td>
+      <td>2.7</td>
+      <td>5.8</td>
+      <td>1.4</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>4.8</td>
+      <td>3.5</td>
+      <td>3.9</td>
+      <td>1.3</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>6.8</td>
+      <td>4.8</td>
+      <td>5.0</td>
+      <td>1.6</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>7.2</td>
+      <td>2.7</td>
+      <td>5.6</td>
+      <td>2.3</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+We will now use our model to predict the species for this new data.  We will use our latest model with k = 10.
 
 
 ```python
-model=KNeighborsClassifier(n_neighbors=3) #this examines 3 neighbours for putting the new data into a class
-model.fit(train_X,train_y)
-prediction=model.predict(test_X)
-print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
+predictNew = model.predict(new)
+print(predictNew)
 ```
 
-### Let's check the accuracy for various values of n for K-Nearest nerighbours
+    ['Iris-virginica' 'Iris-versicolor' 'Iris-versicolor' 'Iris-versicolor'
+     'Iris-setosa' 'Iris-versicolor' 'Iris-versicolor' 'Iris-virginica'
+     'Iris-versicolor' 'Iris-virginica' 'Iris-versicolor' 'Iris-versicolor'
+     'Iris-setosa' 'Iris-virginica' 'Iris-virginica' 'Iris-virginica'
+     'Iris-virginica' 'Iris-versicolor' 'Iris-versicolor' 'Iris-virginica']
+
 
 
 ```python
-a_index=list(range(1,11))
-a=pd.Series()
-x=[1,2,3,4,5,6,7,8,9,10]
-for i in list(range(1,11)):
-    model=KNeighborsClassifier(n_neighbors=i) 
-    model.fit(train_X,train_y)
-    prediction=model.predict(test_X)
-    a=a.append(pd.Series(metrics.accuracy_score(prediction,test_y)))
-plt.plot(a_index, a)
-plt.xticks(x)
+new2 = pandas.concat([new,pandas.DataFrame(predictNew,columns=["Species"])],axis=1)
+print(new2)
 ```
 
-Above is the graph showing the accuracy for the KNN models using different values of n. 
+        SepalLengthCm  SepalWidthCm  PetalLengthCm  PetalWidthCm          Species
+    0             6.5           2.4            5.6           1.8   Iris-virginica
+    1             3.9           2.3            3.8           1.7  Iris-versicolor
+    2             5.6           1.4            3.6           1.3  Iris-versicolor
+    3             6.9           3.1            4.1           1.4  Iris-versicolor
+    4             4.3           4.3            1.7           0.2      Iris-setosa
+    5             6.5           3.0            4.3           1.9  Iris-versicolor
+    6             7.4           3.5            4.4           1.5  Iris-versicolor
+    7             6.5           3.5            5.7           1.5   Iris-virginica
+    8             7.4           3.1            5.3           1.5  Iris-versicolor
+    9             5.7           2.3            5.4           2.0   Iris-virginica
+    10            7.1           2.7            3.9           1.3  Iris-versicolor
+    11            5.1           3.2            4.7           1.5  Iris-versicolor
+    12            4.9           3.8            1.0           0.2      Iris-setosa
+    13            6.7           2.7            5.5           1.8   Iris-virginica
+    14            6.7           2.9            5.7           1.8   Iris-virginica
+    15            7.1           3.4            5.1           2.0   Iris-virginica
+    16            5.2           2.7            5.8           1.4   Iris-virginica
+    17            4.8           3.5            3.9           1.3  Iris-versicolor
+    18            6.8           4.8            5.0           1.6  Iris-versicolor
+    19            7.2           2.7            5.6           2.3   Iris-virginica
 
-### We used all the features of iris in above models. Now we will use Petals and Sepals Seperately
 
-### Creating Petals And Sepals Training Data 
+### <span style="color: #6fb800">Congratulations!</span>
+You have built a model using machine learning, and you used it to make predictions on new data.  If you want to continue working with the Iris dataset, it's possible to try some improvements.  Here are some possibilites:
+- As we saw earlier,petal features seemed to be much better at clustering the data than sepal features.  Can you build a more accurate model using the k-nearest neighbors algorithm using only these features? 
+
+- There are other machine learning algorithms in the sci-kit learn library.  [Support vector machines](https://en.wikipedia.org/wiki/Support_vector_machine) (SVM) is another common machine learning algorithm.  Try applying it to the Iris dataset to see if you can improve your model.  The code for this is below.  How do these prediction of the species of the new dataset differ from your previous predictions?
 
 
 ```python
-petal=iris[['PetalLengthCm','PetalWidthCm','Species']]
-sepal=iris[['SepalLengthCm','SepalWidthCm','Species']]
+from sklearn import svm  
+modelSVM = svm.SVC() # store our new model type
+modelSVM.fit(inputs,outputs) 
+predictionSVM = modelSVM.predict(inputs) 
+print('The accuracy of the KNN is', metrics.accuracy_score(predictionSVM,outputs))
 ```
 
-
-```python
-train_p,test_p=train_test_split(petal,test_size=0.3,random_state=0)  #petals
-train_x_p=train_p[['PetalWidthCm','PetalLengthCm']]
-train_y_p=train_p.Species
-test_x_p=test_p[['PetalWidthCm','PetalLengthCm']]
-test_y_p=test_p.Species
+    The accuracy of the KNN is 0.986666666667
 
 
-train_s,test_s=train_test_split(sepal,test_size=0.3,random_state=0)  #Sepal
-train_x_s=train_s[['SepalWidthCm','SepalLengthCm']]
-train_y_s=train_s.Species
-test_x_s=test_s[['SepalWidthCm','SepalLengthCm']]
-test_y_s=test_s.Species
-```
+- Repeat the previous step with another machine learning algorithm: logistic regression, 
 
-### SVM
+### <span style="color: #6fb800">Where to go next?</span>
 
+These classification problems make great challenges to practice your data science skills.  [Kaggle](https://www.kaggle.com/competitions) hosts data science competitions where you can not only practice your skills but also compete to win money.  Some of the prizes for winning a competition are over a million dollars!  Some competitions can be overwhelming to get started on.  We recommend that you try these competitions as your next step:
 
-```python
-model=svm.SVC()
-model.fit(train_x_p,train_y_p) 
-prediction=model.predict(test_x_p) 
-print('The accuracy of the SVM using Petals is:',metrics.accuracy_score(prediction,test_y_p))
+- [Titanic: Machine Learning from Disaster](https://www.kaggle.com/c/titanic) - This competition, albeit a bit morbid, asks you to build a model to predict what type of passengers survived the titanic.  If you want some help getting started, [here](https://www.kaggle.com/startupsci/titanic-data-science-solutions) is a tutorial to get you started.
+- [Digit Recognizer](https://www.kaggle.com/c/digit-recognizer) - This competition introduces you to computer vision as you take a dataset collected from hand-written numbers.  Your goal is to identify the digit that was written.  Again, it may help to check out one of the [kernels](https://www.kaggle.com/c/digit-recognizer/kernels?sortBy=votes&language=Python&after=false) that other people have written to guide you along your way.
 
-model=svm.SVC()
-model.fit(train_x_s,train_y_s) 
-prediction=model.predict(test_x_s) 
-print('The accuracy of the SVM using Sepal is:',metrics.accuracy_score(prediction,test_y_s))
-```
+### <span style="color: #6fb800">Good luck!</span>
 
-### Logistic Regression
-
-
-```python
-model = LogisticRegression()
-model.fit(train_x_p,train_y_p) 
-prediction=model.predict(test_x_p) 
-print('The accuracy of the Logistic Regression using Petals is:',metrics.accuracy_score(prediction,test_y_p))
-
-model.fit(train_x_s,train_y_s) 
-prediction=model.predict(test_x_s) 
-print('The accuracy of the Logistic Regression using Sepals is:',metrics.accuracy_score(prediction,test_y_s))
-```
-
-### Decision Tree
-
-
-```python
-model=DecisionTreeClassifier()
-model.fit(train_x_p,train_y_p) 
-prediction=model.predict(test_x_p) 
-print('The accuracy of the Decision Tree using Petals is:',metrics.accuracy_score(prediction,test_y_p))
-
-model.fit(train_x_s,train_y_s) 
-prediction=model.predict(test_x_s) 
-print('The accuracy of the Decision Tree using Sepals is:',metrics.accuracy_score(prediction,test_y_s))
-```
-
-### K-Nearest Neighbours
-
-
-```python
-model=KNeighborsClassifier(n_neighbors=3) 
-model.fit(train_x_p,train_y_p) 
-prediction=model.predict(test_x_p) 
-print('The accuracy of the KNN using Petals is:',metrics.accuracy_score(prediction,test_y_p))
-
-model.fit(train_x_s,train_y_s) 
-prediction=model.predict(test_x_s) 
-print('The accuracy of the KNN using Sepals is:',metrics.accuracy_score(prediction,test_y_s))
-```
-
-### Observations:
-
- - Using Petals over Sepal for training the data gives a much better accuracy.
- - This was expected as we saw in the heatmap above that the correlation between the Sepal Width and Length was very low whereas the correlation between Petal Width and Length was very high. 
-
-Thus we have just implemented some of the common Machine Learning. Since the dataset is small with very few features, I didn't cover some concepts as they would be relevant when we have many features.
-
-I will soon compile a notebook covering some advanced ML concepts using a larger dataset.
-
-I hope the notebook was useful to you to get started with Machine Learning.
-
-If  find this notebook, **Please Upvote**.
-
-Thank You!!
-
-
-```python
-
-```
